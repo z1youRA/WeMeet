@@ -50,10 +50,12 @@ class MainActivity : ComponentActivity() {
             permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
                 // 精确位置权限已获取
                 viewModel.startLocationUpdates(interval)
+                Log.e("location", "Location get")
             }
             permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
                 // 粗略位置权限已获取
                 viewModel.startLocationUpdates(interval)
+                Log.e("location", "Location get")
             }
             else -> {
                 // 显示权限被拒绝对话框
@@ -80,6 +82,7 @@ class MainActivity : ComponentActivity() {
             finish()
         }
 
+        viewModel.connectWebSocket()
         viewModel.joinRoom()
         
         locationPermissionRequest.launch(
@@ -90,7 +93,12 @@ class MainActivity : ComponentActivity() {
         )
         setContent {
             WeMeetTheme(dynamicColor = false) {
-                WeMeetScreen(viewModel)
+                //WeMeetScreen(viewModel)
+                WeMeetScreen(viewModel = viewModel,
+                    onBackPressed = {
+                        viewModel.leaveRoom()
+                        finish()
+                    }) // 调用 `finish` 关闭当前页面
             }
         }
     }
@@ -98,7 +106,8 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WeMeetScreen(viewModel: WeMeetViewModel) {
+//fun WeMeetScreen(viewModel: WeMeetViewModel) {
+fun WeMeetScreen(viewModel: WeMeetViewModel, onBackPressed: () -> Unit) { // 添加参数用于处理返回
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
 
@@ -106,13 +115,16 @@ fun WeMeetScreen(viewModel: WeMeetViewModel) {
         scaffoldState = scaffoldState,
         sheetPeekHeight = 128.dp,
         topBar = {
-            WeMeetTopBar(topBarTitleStringRes = "ROOM" + viewModel.pinCode)
+            WeMeetTopBar(
+                topBarTitleStringRes = "ROOM" + viewModel.pinCode,
+                onBackClick = onBackPressed
+            )
         },
         sheetContent = {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ChatRoom(viewModel = viewModel)
+                ChatRoom(viewModel = viewModel)////////////////////////////////////////////////////
             }
         }
     ) {

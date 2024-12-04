@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import com.ziyoura.wemeet.presentation.WeMeetViewModel
 
 
 /**
@@ -32,11 +33,13 @@ import androidx.compose.runtime.Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun WeMeetTopBar(
     topBarTitleStringRes: String,
+    onBackClick: () -> Unit // 添加一个回调参数，用于处理返回操作
 ) {
     TopAppBar(
         title = { Text(topBarTitleStringRes) },
         navigationIcon = {
-            IconButton(onClick = { /* 处理返回操作 */ }) {
+            //IconButton(onClick = { /* 处理返回操作 */ }) {
+            IconButton(onClick = (onBackClick)) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back"

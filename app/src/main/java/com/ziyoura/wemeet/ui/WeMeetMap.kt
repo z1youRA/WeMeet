@@ -76,25 +76,25 @@ fun WeMeetMap(viewModel: WeMeetViewModel) {
 
     // Update the camera position when the location changes
     LaunchedEffect(locationState) {
-        Log.d("WeMeet", "Location state changed: $locationState")
+        Log.d("xqc", "Location state changed: $locationState")
         when (val state = locationState) {
             is WeMeetViewModel.LocationState.Success -> {
                 val currentLatLng = LatLng(state.location.latitude, state.location.longitude)
                 locationSource.onLocationChanged(state.location)
-                Log.d("WeMeet", "Location updated: $currentLatLng")
+                Log.d("xqc", "Location updated: $currentLatLng")
                 // 只在首次定位时移动摄像机
                 if (!hasInitialPosition) {
-                    Log.d("WeMeet", "Move camera to $currentLatLng")
+                    Log.d("xqc", "Move camera to $currentLatLng")
                     cameraPositionState.position = CameraPosition.fromLatLngZoom(currentLatLng, zoom)
                     hasInitialPosition = true
                 }
             }
             is WeMeetViewModel.LocationState.Error -> {
-                Log.d("WeMeet", "Location error: ${state.message}")
+                Log.d("xqc", "Location error: ${state.message}")
 
             }
             is WeMeetViewModel.LocationState.Loading -> {
-                Log.d("WeMeet", "Loading location")
+                Log.d("xqc", "Loading location")
             }
             else -> {}
         }

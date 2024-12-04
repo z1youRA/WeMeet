@@ -25,7 +25,7 @@ class PairingViewModel: ViewModel() {
         viewModelScope.launch {
             _uiState.value = PairingState.Loading
             try {
-
+                    //在WeMeetViewModel中joinroom
 
             } catch (e: Exception) {
                 _uiState.value = PairingState.Error(e.message ?: "配对失败")

@@ -49,11 +49,11 @@ data class Message(val user_id: String, val message: String, val name: String, v
 // 新增用于WebSocket的数据类
 @Serializable
 sealed class WebSocketEvent {
-    @SerialName("chat")////////////////////////////////////////////////////////////////////////////
+    @SerialName("chat")
     @Serializable
     data class ChatMessage(
         val type: String = "chat",
-        val pinCode: String, ////////////////////////////////////////////////////////////////////新加的
+        val pinCode: String, 
         val userId: String,
         val name: String,
         val message: String,
@@ -63,7 +63,7 @@ sealed class WebSocketEvent {
     @Serializable
     data class LocationUpdate(
         val type: String = "location",
-        val pinCode: String, ////////////////////////////////////////////////////////////////////新加的
+        val pinCode: String, 
         val userId: String,
         val username: String, // 添加username字段
         val latitude: Double,
@@ -225,7 +225,6 @@ class WeMeetViewModel(application: Application) : AndroidViewModel(application){
     }
 
     fun sendMessage(message: String) {
-        //OK, 发送到服务端，保存到数据库
         viewModelScope.launch {
             Log.d("MyTag", "sendMessage up")
             // 发送到WebSocket

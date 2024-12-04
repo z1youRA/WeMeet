@@ -124,7 +124,7 @@ fun WeMeetScreen(viewModel: WeMeetViewModel, onBackPressed: () -> Unit) { // 添
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ChatRoom(viewModel = viewModel)////////////////////////////////////////////////////
+                ChatRoom(viewModel = viewModel)
             }
         }
     ) {

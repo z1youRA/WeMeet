@@ -165,7 +165,7 @@ class WeMeetViewModel(application: Application) : AndroidViewModel(application){
                         is WebSocketEvent.ChatMessage -> {
                             Log.d("WebSocketListener", "is WebSocketEvent.ChatMessage")
                             val newMessage = Message(
-                                //user_id = event.userId.toInt(),//////////////////////////////////////
+                                //user_id = event.userId.toInt(),
                                 user_id = event.userId,
                                 message = event.message,
                                 name = event.name,
@@ -208,11 +208,11 @@ class WeMeetViewModel(application: Application) : AndroidViewModel(application){
         }
     }
 
-    //private fun connectWebSocket() {////////////////////////////////////////////////////////////////////////
+    //private fun connectWebSocket() {
     fun connectWebSocket() {
         val request = Request.Builder()
             //.url("ws://your-websocket-server-url/ws/$pinCode") // 替换为实际的WebSocket服务器地址
-            .url("ws://192.168.0.128:55722/ws/$pinCode")//////////////////////////////////////////////////////
+            .url("ws://192.168.0.128:55722/ws/$pinCode")
             .build()
         webSocket = client.newWebSocket(request, wsListener)
     }
@@ -227,7 +227,7 @@ class WeMeetViewModel(application: Application) : AndroidViewModel(application){
     fun sendMessage(message: String) {
         //OK, 发送到服务端，保存到数据库
         viewModelScope.launch {
-            Log.d("MyTag", "sendMessage up")///////////////////////////////////////////////
+            Log.d("MyTag", "sendMessage up")
             // 发送到WebSocket
             val chatMessage = WebSocketEvent.ChatMessage(
                 type = "chat",
@@ -237,10 +237,10 @@ class WeMeetViewModel(application: Application) : AndroidViewModel(application){
                 message = message,
                 timestamp = System.currentTimeMillis()
             )
-            Log.d("MyTag", "chatMessage up")//////////////////////////////////////////////
-            val jsonString = Json.encodeToString(WebSocketEvent.ChatMessage.serializer(), chatMessage)  /////////////////////
-            // 打印 JSON 字符串///////////////////////////////////////////////////////////////////////////////////////////////
-            Log.d("MyTag", "chatMessage: $jsonString")/////////////////////////////////////
+            Log.d("MyTag", "chatMessage up")
+            val jsonString = Json.encodeToString(WebSocketEvent.ChatMessage.serializer(), chatMessage)
+
+            Log.d("MyTag", "chatMessage: $jsonString")
             webSocket?.send(Json.encodeToString(chatMessage))
         }
     }
@@ -260,7 +260,6 @@ class WeMeetViewModel(application: Application) : AndroidViewModel(application){
     }
 
     fun joinRoom() {
-        ///OK, 如果是新房间则在数据库中新增一个房间，如果不是新的就什么都不做，在MainActivity.kt中调用
         val joinEvent = WebSocketEvent.RoomEvent(
             eventType = "join",
             userId = userId,

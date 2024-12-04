@@ -48,7 +48,7 @@ fun ChatRoom(viewModel: WeMeetViewModel) {
     Scaffold(
         bottomBar = {
             ChatInputField(onMessageSent = { text -> run {
-                Log.d("MyTag", "onMessageSent up")/////////////////////////////////////////
+                Log.d("MyTag", "onMessageSent up")
                 viewModel.sendMessage(text)
 
             } })
@@ -103,7 +103,7 @@ fun ChatRecordContent(
 
 @Composable
 fun ChatInputField(onMessageSent: (String) -> Unit) {
-    Log.d("MyTag", "ChatInputField up") //////////////////////////////////////////////////
+    Log.d("MyTag", "ChatInputField up")
     var text by remember { mutableStateOf("") }
 
     Row(

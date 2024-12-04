@@ -80,6 +80,7 @@ class MainActivity : ComponentActivity() {
             finish()
         }
 
+        viewModel.connectWebSocket()////////////////////////////////////////////////////////////////
         viewModel.joinRoom()
         
         locationPermissionRequest.launch(
@@ -112,7 +113,7 @@ fun WeMeetScreen(viewModel: WeMeetViewModel) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ChatRoom(viewModel = viewModel)
+                ChatRoom(viewModel = viewModel)////////////////////////////////////////////////////
             }
         }
     ) {

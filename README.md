@@ -38,3 +38,9 @@ WeMeet 是一个基于 Android 的应用程序，允许用户在地图上共享�
     ```properties
     MAPS_API_KEY=DEFAULT_API_KEY
     ```
+
+## 配置服务器数据库
+
+1. Rename `.env.example` to `.env`
+2. Add your MongoDB Atlas credentials to `.env`
+3. Never commit `.env` file

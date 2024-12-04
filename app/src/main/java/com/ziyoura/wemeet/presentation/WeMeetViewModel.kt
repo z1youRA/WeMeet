@@ -212,7 +212,7 @@ class WeMeetViewModel(application: Application) : AndroidViewModel(application){
     fun connectWebSocket() {
         val request = Request.Builder()
             //.url("ws://your-websocket-server-url/ws/$pinCode") // 替换为实际的WebSocket服务器地址
-            .url("ws://192.168.0.128:55722/ws/$pinCode")
+            .url("ws://10.0.2.2:8000/ws/$pinCode")
             .build()
         webSocket = client.newWebSocket(request, wsListener)
     }

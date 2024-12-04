@@ -1,8 +1,5 @@
-# to run the script with uvicorn with fastapi at port 55722: uvicorn main:app --host 0.0.0.0 --port 55722
-#这个是服务端代码，fastapi
-
-from fastapi import FastAPI
-from datetime import date
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from datetime import date, datetime
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
@@ -11,17 +8,18 @@ import json
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from bson.json_util import dumps
-from datetime import datetime
 from starlette.middleware.base import BaseHTTPMiddleware
-
-uri = ""
-client = MongoClient(uri, server_api=ServerApi('1'))
-db = client.ChatApp
-
-
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from typing import List, Dict
-import json
+import os
+from dotenv import load_dotenv
+
+# 加载.env文件
+load_dotenv()
+
+# 使用环境变量构建MongoDB URI
+uri = f"mongodb+srv://{os.getenv('MONGODB_USERNAME')}:{os.getenv('MONGODB_PASSWORD')}@{os.getenv('MONGODB_CLUSTER')}/?retryWrites=true&w=majority&appName=Cluster0"
+client = MongoClient(uri, server_api=ServerApi('1'))
+db = client.Wemeet
 
 # 定义事件的结构
 class RoomEvent(BaseModel):
@@ -47,16 +45,13 @@ class LocationUpdate(BaseModel):
     latitude: float 
     longitude: float 
     timestamp: int
-    
 
 
 app = FastAPI()
 
-uri = "mongodb+srv://gaoqi:1155218605@cluster0.zhrbj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-client = MongoClient(uri, server_api=ServerApi('1'))
-db = client.ChatApp
-'''rooms_collection = db.rooms
-messages_collection = db.messages'''
+@app.get("/")
+async def read_root():
+    return {"Hello": "World"}
 
 # 房间管理类
 class RoomManager:

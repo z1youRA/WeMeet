@@ -1,5 +1,6 @@
 package com.ziyoura.wemeet.ui
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +48,7 @@ fun ChatRoom(viewModel: WeMeetViewModel) {
     Scaffold(
         bottomBar = {
             ChatInputField(onMessageSent = { text -> run {
+                Log.d("MyTag", "onMessageSent up")
                 viewModel.sendMessage(text)
 
             } })
@@ -101,6 +103,7 @@ fun ChatRecordContent(
 
 @Composable
 fun ChatInputField(onMessageSent: (String) -> Unit) {
+    Log.d("MyTag", "ChatInputField up")
     var text by remember { mutableStateOf("") }
 
     Row(

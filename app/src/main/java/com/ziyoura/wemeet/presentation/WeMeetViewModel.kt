@@ -12,9 +12,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -24,16 +27,33 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
+// 配置 Json 实例和 SerializersModule
+val json = Json {
+    serializersModule = SerializersModule {
+        polymorphic(WebSocketEvent::class) {
+            subclass(WebSocketEvent.ChatMessage::class, WebSocketEvent.ChatMessage.serializer())
+            subclass(WebSocketEvent.LocationUpdate::class, WebSocketEvent.LocationUpdate.serializer())
+            subclass(WebSocketEvent.RoomEvent::class, WebSocketEvent.RoomEvent.serializer())
+        }
+    }
+    encodeDefaults = true
+    isLenient = true
+    prettyPrint = true
+}
 
 @Serializable
-data class Message(val user_id: Int, val message: String, val name: String, val message_time: String)
+//data class Message(val user_id: Int, val message: String, val name: String, val message_time: String)
+data class Message(val user_id: String, val message: String, val name: String, val message_time: String)
+
 
 // 新增用于WebSocket的数据类
 @Serializable
 sealed class WebSocketEvent {
+    @SerialName("chat")
     @Serializable
     data class ChatMessage(
         val type: String = "chat",
+        val pinCode: String, 
         val userId: String,
         val name: String,
         val message: String,
@@ -43,6 +63,7 @@ sealed class WebSocketEvent {
     @Serializable
     data class LocationUpdate(
         val type: String = "location",
+        val pinCode: String, 
         val userId: String,
         val username: String, // 添加username字段
         val latitude: Double,
@@ -93,12 +114,12 @@ class WeMeetViewModel(application: Application) : AndroidViewModel(application){
     }
 
     private val _messages = MutableStateFlow<List<Message>>(listOf(
-        Message(1, "Hello", "Alice", "2022-03-01 12:00:00"),
-        Message(2, "Hi", "Bob", "2022-03-01 12:01:00"),
-        Message(3, "How are you?", "Alice", "2022-03-01 12:02:00"),
-        Message(4, "I'm fine", "Bob", "2022-03-01 12:03:00"),
-        Message(5, "Good to hear that", "Alice", "2022-03-01 12:04:00"),
-        Message(6, "Bye", "Bob", "2022-03-01 12:05:00"),
+        Message("1", "Hello", "Alice", "2022-03-01 12:00:00"),
+        Message("2", "Hi", "Bob", "2022-03-01 12:01:00"),
+        Message("3", "How are you?", "Alice", "2022-03-01 12:02:00"),
+        Message("4", "I'm fine", "Bob", "2022-03-01 12:03:00"),
+        Message("5", "Good to hear that", "Alice", "2022-03-01 12:04:00"),
+        Message("6", "Bye", "Bob", "2022-03-01 12:05:00"),
     ))
     val messagesData = _messages.asStateFlow()
 
@@ -137,20 +158,25 @@ class WeMeetViewModel(application: Application) : AndroidViewModel(application){
 
     private val wsListener = object : WebSocketListener() {
         override fun onMessage(webSocket: WebSocket, text: String) {
+            Log.d("WebSocketListener", "Received message: $text")
             viewModelScope.launch {
                 try {
                     when (val event = Json.decodeFromString<WebSocketEvent>(text)) {
                         is WebSocketEvent.ChatMessage -> {
+                            Log.d("WebSocketListener", "is WebSocketEvent.ChatMessage")
                             val newMessage = Message(
-                                user_id = event.userId.toInt(),
+                                //user_id = event.userId.toInt(),
+                                user_id = event.userId,
                                 message = event.message,
                                 name = event.name,
                                 message_time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
                                     .format(Date(event.timestamp))
                             )
                             _messages.value += newMessage
+                            Log.d("WebSocketListener", "Added new message: $newMessage")
                         }
                         is WebSocketEvent.LocationUpdate -> {
+                            Log.d("WebSocketListener", "is WebSocketEvent.LocationUpdate")
                             val newLocation = UserLocationInfo(
                                 userId = event.userId,
                                 username = event.username,
@@ -182,9 +208,11 @@ class WeMeetViewModel(application: Application) : AndroidViewModel(application){
         }
     }
 
-    private fun connectWebSocket() {
+    //private fun connectWebSocket() {
+    fun connectWebSocket() {
         val request = Request.Builder()
-            .url("ws://your-websocket-server-url/ws/$pinCode") // 替换为实际的WebSocket服务器地址
+            //.url("ws://your-websocket-server-url/ws/$pinCode") // 替换为实际的WebSocket服务器地址
+            .url("ws://192.168.0.128:55722/ws/$pinCode")
             .build()
         webSocket = client.newWebSocket(request, wsListener)
     }
@@ -198,20 +226,29 @@ class WeMeetViewModel(application: Application) : AndroidViewModel(application){
 
     fun sendMessage(message: String) {
         viewModelScope.launch {
-            
+            Log.d("MyTag", "sendMessage up")
             // 发送到WebSocket
             val chatMessage = WebSocketEvent.ChatMessage(
+                type = "chat",
+                pinCode = pinCode,
                 userId = userId,
                 name = username,
                 message = message,
+                timestamp = System.currentTimeMillis()
             )
+            Log.d("MyTag", "chatMessage up")
+            val jsonString = Json.encodeToString(WebSocketEvent.ChatMessage.serializer(), chatMessage)
+
+            Log.d("MyTag", "chatMessage: $jsonString")
             webSocket?.send(Json.encodeToString(chatMessage))
         }
     }
 
     private fun sendLocationToServer(location: Location) {
+        //wait test
         viewModelScope.launch {
             val locationUpdate = WebSocketEvent.LocationUpdate(
+                pinCode = pinCode,
                 userId = userId,
                 username = username, // 发送位置时包含用户名
                 latitude = location.latitude,

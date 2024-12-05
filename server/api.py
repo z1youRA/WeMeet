@@ -169,22 +169,6 @@ class RoomManager:
 
 manager = RoomManager()
 
-
-'''def get_messages(pinCode: str):
-    # Query the messages for that chat room, sorted by time
-    messages_cursor = db.messages.find(
-        {"room_id": str(pinCode)},
-        {"_id": 0, "userId": 1, "name": 1, "message": 1}
-    ).sort("timestamp", 1)
-    # Convert the cursor to a list for iteration
-    messages = list(messages_cursor)
-    data = {
-        "data": {
-            "messages": messages,
-        },
-        "status": "OK"
-    }
-    return JSONResponse(content=jsonable_encoder(data))'''
 async def send_messages(pin_code: str):
     """
     按时间顺序逐条发送历史消息给客户端

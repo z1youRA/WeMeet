@@ -2,6 +2,7 @@ package com.ziyoura.wemeet
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -11,13 +12,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -64,8 +72,8 @@ class PairingActivity : ComponentActivity() {
             WeMeetTheme(dynamicColor = false) {
                 PairingScreen(
                     onPinComplete = { pinCode, username ->
-                        viewModel.joinChatroom(pinCode)
-
+//                        viewModel.joinChatroom(pinCode)
+                        // join room after entering MainActivity
                         val intent = Intent(this@PairingActivity, MainActivity::class.java).apply {
                             putExtra("pinCode", pinCode)
                             putExtra("username", username)
@@ -85,6 +93,7 @@ class PairingActivity : ComponentActivity() {
 fun PairingScreen(
     onPinComplete: (String, String) -> Unit
 ) {
+    val context = LocalContext.current
     var pinCode by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
 
@@ -131,12 +140,37 @@ fun PairingScreen(
             onPinChange = { newPin ->
                 if (newPin.length <= 4 && newPin.all { it.isDigit() }) {
                     pinCode = newPin
-                    if (newPin.length == 4 && username.isNotBlank()) {
-                        onPinComplete(newPin, username)
-                    }
+                    if (newPin.length == 4)
+                        onPinComplete(pinCode, username)
                 }
+
             }
         )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        FloatingActionButton(
+            onClick = {
+                when {
+                    username.isBlank() -> {
+                        Toast.makeText(context, "请输入用户名", Toast.LENGTH_SHORT).show()
+                    }
+                    pinCode.length != 4 -> {
+                        Toast.makeText(context, "请输入4位数字码", Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+                        onPinComplete(pinCode, username)
+                    }
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "确认"
+            )
+        }
     }
 }
 
@@ -177,6 +211,7 @@ fun PinInput(
             ),
             keyboardActions = KeyboardActions(onDone = {
                 keyboardController?.hide()
+                onPinChange(pin)
             }),
             cursorBrush = SolidColor(Color.Transparent),
 

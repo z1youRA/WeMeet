@@ -24,12 +24,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ziyoura.wemeet.presentation.WeMeetViewModel
 import com.ziyoura.wemeet.ui.ChatRoom
@@ -128,8 +130,10 @@ fun WeMeetScreen(viewModel: WeMeetViewModel, onBackPressed: () -> Unit) { // 添
             }
         }
     ) {
+        innerpadding ->
         Box(
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.padding(innerpadding)  // 修复拼写错误：modifer -> modifier
         ) {
             WeMeetMap(viewModel)
         }

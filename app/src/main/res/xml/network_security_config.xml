@@ -3,5 +3,8 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">192.168.0.128</domain>
         <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">20.205.69.87</domain>
+        <domain includeSubdomains="true">iems5722-chatroomserverapp-1155215553-ccg4ajeqbvfkacav.eastasia-01.azurewebsites.net</domain>
+        <domain includeSubdomains="true">47.103.112.245</domain>
     </domain-config>
 </network-security-config>

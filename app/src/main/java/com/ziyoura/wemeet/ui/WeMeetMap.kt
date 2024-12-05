@@ -115,8 +115,9 @@ fun WeMeetMap(viewModel: WeMeetViewModel) {
                 viewModel.getCurrentLocation()
             },
             googleMapOptionsFactory = {
-                GoogleMapOptions().mapId(mapId)
-            }
+                GoogleMapOptions()
+                    .mapId(mapId)
+            },
         ) {
             // 在地图上显示其他用户的位置
             otherUsersLocations.forEach { (_, userLocationInfo) ->
@@ -125,8 +126,8 @@ fun WeMeetMap(viewModel: WeMeetViewModel) {
                     title = "用户 ${userLocationInfo.username}", // 显示用户ID的第一个字符
                     snippet = "其他用户",
                     icon = BitmapDescriptorFactory.defaultMarker(
-                        // 根据用户ID生成不同的颜色
-                        (userLocationInfo.userId.hashCode() * 30f) % 360f
+                        // 确保色调值在0-360范围内
+                        (userLocationInfo.userId.hashCode() and 0xFF).toFloat() % 360f  // 使用哈希值转换为合法色调
                     )
                 )
             }

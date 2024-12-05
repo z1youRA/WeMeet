@@ -58,6 +58,7 @@ class RoomManager:
     def __init__(self):
         self.rooms: Dict[str, List[WebSocket]] = {}  # 房间ID (pinCode) 到 WebSocket 列表的映射
         self.active_connections: Dict[WebSocket, str] = {}  # 跟踪每个连接所在的房间
+        self.last_locations = {}  # 存储每个用户的最后位置信息
 
     async def connect(self, websocket: WebSocket, pin_code: str):
         try:
@@ -75,6 +76,10 @@ class RoomManager:
         try:
             if pin_code in self.rooms and websocket in self.rooms[pin_code]:
                 self.rooms[pin_code].remove(websocket)
+                # 清理该用户的位置缓存
+                for key in list(self.last_locations.keys()):
+                    if key.startswith(f"{pin_code}:"):
+                        del self.last_locations[key]
                 if not self.rooms[pin_code]:
                     del self.rooms[pin_code]
             if websocket in self.active_connections:
@@ -115,36 +120,51 @@ class RoomManager:
             for dead_connection in dead_connections:
                 self.disconnect(dead_connection, pin_code)
         
-    async def send_locations(self, pin_code: str, user_id: str, username: str, latitude: float, longitude:float, timestamp: int):
-        '''向前端发送location信息 wait test
-            class LocationUpdate(BaseModel):
-                type: str = "location"
-                userId: str
-                username: str
-                latitude: float 
-                longitude: float 
-                timestamp: int
-        '''
+    async def send_locations(self, pin_code: str, user_id: str, username: str, latitude: float, longitude: float, timestamp: int):
+        """向房间内其他用户发送位置信息"""
         if pin_code in self.rooms:
-            # 创建 ChatMessage 实例
+            # 创建位置消息
             location_message = LocationUpdate(
-                pinCode = pin_code,
-                userId = user_id,
-                username = username,
-                latitude = latitude,
-                longitude = longitude,
-                timestamp = timestamp
+                pinCode=pin_code,
+                userId=user_id,
+                username=username,
+                latitude=latitude,
+                longitude=longitude,
+                timestamp=timestamp
             )
-            # 序列化为 JSON 字符串
+
+            # 检查是否是重复位置
+            location_key = f"{pin_code}:{user_id}"
+            last_location = self.last_locations.get(location_key)
+            if last_location and last_location == (latitude, longitude):
+                return  # 如果位置相同，不重复发送
+
+            # 更新最后位置
+            self.last_locations[location_key] = (latitude, longitude)
+            
+            # 序列化消息
             json_message = location_message.json()
-            print(json_message)
-            # 向房间内所有连接广播消息
+            
+            # 向房间内所有其他用户发送消息
+            dead_connections = []
             for connection in self.rooms[pin_code]:
                 try:
                     await connection.send_text(json_message)
-                    print(json_message)
                 except Exception as e:
-                    print(f"Failed to send location to a client: {e}")
+                    print(f"Failed to send location: {e}")
+                    dead_connections.append(connection)
+            
+            # 清理断开的连接
+            for dead_connection in dead_connections:
+                self.disconnect(dead_connection, pin_code)
+
+    async def handle_ping(self, websocket: WebSocket):
+        """处理心跳消息"""
+        try:
+            await websocket.send_text("pong")
+        except Exception as e:
+            print(f"发送pong失败: {str(e)}")
+            raise
 
 
 manager = RoomManager()
@@ -191,6 +211,11 @@ async def send_messages(pin_code: str):
 @app.websocket("/ws/{pin_code}")
 async def websocket_endpoint(websocket: WebSocket, pin_code: str):
     try:
+        # 检查房间连接数
+        if pin_code in manager.rooms and len(manager.rooms[pin_code]) >= 10:  # 限制每个房间最大连接数
+            await websocket.close(code=1008, reason="Room is full")
+            return
+
         await manager.connect(websocket, pin_code)
         print(f"新用户连接到房间 {pin_code}")
 
@@ -201,7 +226,7 @@ async def websocket_endpoint(websocket: WebSocket, pin_code: str):
                     continue
                 
                 if data == "ping":
-                    await websocket.send_text("pong")
+                    await manager.handle_ping(websocket)
                     continue
 
                 event = json.loads(data)
@@ -338,7 +363,7 @@ async def websocket_endpoint(websocket: WebSocket, pin_code: str):
                 break
             except Exception as e:
                 print(f"处理消息错误: {str(e)}")
-                if str(e).startsWith("Connection"):
+                if "Connection" in str(e):
                     break
                 continue
     except Exception as e:

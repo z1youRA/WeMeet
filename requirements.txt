@@ -3,6 +3,6 @@ pydantic==2.10.3
 pymongo==4.10.1
 python-dotenv==1.0.1
 starlette==0.41.3
-uvicorn
+uvicorn[standard]
 pyfcm==2.0.7
 wsproto==1.2.0
